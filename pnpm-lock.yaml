@@ -1274,6 +1274,10 @@ importers:
       vue:
         specifier: 3.5.7
         version: 3.5.7(typescript@5.6.2)
+    devDependencies:
+      vitest:
+        specifier: ^2.1.1
+        version: 2.1.1(@types/node@22.5.5)(happy-dom@15.7.4)(less@4.2.0)(sass@1.79.3)(terser@5.33.0)
 
   packages/@core/ui-kit/form-ui:
     dependencies:
