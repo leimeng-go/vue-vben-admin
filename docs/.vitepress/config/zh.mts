@@ -165,6 +165,10 @@ function sidebarComponents(): DefaultTheme.SidebarItem[] {
           text: 'Form 表单',
         },
         {
+          link: 'common-ui/vben-vxe-table',
+          text: 'Vxe Table 表格',
+        },
+        {
           link: 'common-ui/vben-count-to-animator',
           text: 'CountToAnimator 数字动画',
         },
@@ -176,13 +180,16 @@ function sidebarComponents(): DefaultTheme.SidebarItem[] {
 function nav(): DefaultTheme.NavItem[] {
   return [
     {
+      activeMatch: '^/(guide|components)/',
       text: '文档',
       items: [
         {
+          activeMatch: '^/guide/',
           link: '/guide/introduction/vben',
           text: '指南',
         },
         {
+          activeMatch: '^/components/',
           link: '/components/introduction',
           text: '组件',
         },

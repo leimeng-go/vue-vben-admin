@@ -15,10 +15,17 @@ const customConfig: Linter.Config[] = [
     },
   },
   {
-    files: ['packages/effects/**/**', 'packages/types/**/**'],
+    files: [
+      'apps/**/**',
+      'packages/effects/**/**',
+      'packages/utils/**/**',
+      'packages/types/**/**',
+      'packages/locales/**/**',
+    ],
     ignores: restrictedImportIgnores,
     rules: {
       'perfectionist/sort-interfaces': 'off',
+      'perfectionist/sort-objects': 'off',
     },
   },
   {
@@ -143,7 +150,7 @@ const customConfig: Linter.Config[] = [
     },
   },
   {
-    files: ['internal/**/**'],
+    files: ['internal/**/**', 'scripts/**/**'],
     rules: {
       'no-console': 'off',
     },

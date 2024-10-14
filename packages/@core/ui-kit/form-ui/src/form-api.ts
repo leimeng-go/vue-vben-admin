@@ -12,26 +12,23 @@ import { toRaw } from 'vue';
 import { Store } from '@vben-core/shared/store';
 import {
   bindMethods,
-  createMerge,
   isFunction,
+  mergeWithArrayOverride,
   StateHandler,
 } from '@vben-core/shared/utils';
 
-const merge = createMerge((originObj, key, updates) => {
-  if (Array.isArray(originObj[key]) && Array.isArray(updates)) {
-    originObj[key] = updates;
-    return true;
-  }
-});
+import { objectPick } from '@vueuse/core';
 
 function getDefaultState(): VbenFormProps {
   return {
     actionWrapperClass: '',
     collapsed: false,
     collapsedRows: 1,
+    collapseTriggerResize: false,
     commonConfig: {},
     handleReset: undefined,
     handleSubmit: undefined,
+    handleValuesChange: undefined,
     layout: 'horizontal',
     resetButtonOptions: {},
     schema: [],
@@ -121,6 +118,47 @@ export class FormApi {
     return form.values;
   }
 
+  merge(formApi: FormApi) {
+    const chain = [this, formApi];
+    const proxy = new Proxy(formApi, {
+      get(target: any, prop: any) {
+        if (prop === 'merge') {
+          return (nextFormApi: FormApi) => {
+            chain.push(nextFormApi);
+            return proxy;
+          };
+        }
+        if (prop === 'submitAllForm') {
+          return async (needMerge: boolean = true) => {
+            try {
+              const results = await Promise.all(
+                chain.map(async (api) => {
+                  const form = await api.getForm();
+                  const validateResult = await api.validate();
+                  if (!validateResult.valid) {
+                    return;
+                  }
+                  const rawValues = toRaw(form.values || {});
+                  return rawValues;
+                }),
+              );
+              if (needMerge) {
+                const mergedResults = Object.assign({}, ...results);
+                return mergedResults;
+              }
+              return results;
+            } catch (error) {
+              console.error('Validation error:', error);
+            }
+          };
+        }
+        return target[prop];
+      },
+    });
+
+    return proxy;
+  }
+
   mount(formActions: FormActions) {
     if (!this.isMounted) {
       Object.assign(this.form, formActions);
@@ -175,19 +213,32 @@ export class FormApi {
   ) {
     if (isFunction(stateOrFn)) {
       this.store.setState((prev) => {
-        return merge(stateOrFn(prev), prev);
+        return mergeWithArrayOverride(stateOrFn(prev), prev);
       });
     } else {
-      this.store.setState((prev) => merge(stateOrFn, prev));
+      this.store.setState((prev) => mergeWithArrayOverride(stateOrFn, prev));
     }
   }
 
+  /**
+   * 设置表单值
+   * @param fields record
+   * @param filterFields 过滤不在schema中定义的字段 默认为true
+   * @param shouldValidate
+   */
   async setValues(
     fields: Record<string, any>,
+    filterFields: boolean = true,
     shouldValidate: boolean = false,
   ) {
     const form = await this.getForm();
-    form.setValues(fields, shouldValidate);
+    if (!filterFields) {
+      form.setValues(fields, shouldValidate);
+      return;
+    }
+    const fieldNames = this.state?.schema?.map((item) => item.fieldName) ?? [];
+    const filteredFields = objectPick(fields, fieldNames);
+    form.setValues(filteredFields, shouldValidate);
   }
 
   async submitForm(e?: Event) {
@@ -200,7 +251,7 @@ export class FormApi {
     return rawValues;
   }
 
-  unmounted() {
+  unmount() {
     // this.state = null;
     this.isMounted = false;
     this.stateHandler.reset();
@@ -231,7 +282,10 @@ export class FormApi {
     currentSchema.forEach((schema, index) => {
       const updatedData = updatedMap[schema.fieldName];
       if (updatedData) {
-        currentSchema[index] = merge(updatedData, schema) as FormSchema;
+        currentSchema[index] = mergeWithArrayOverride(
+          updatedData,
+          schema,
+        ) as FormSchema;
       }
     });
     this.setState({ schema: currentSchema });

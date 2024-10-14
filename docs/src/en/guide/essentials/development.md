@@ -75,7 +75,7 @@ The execution command is: `pnpm run [script]` or `npm run [script]`.
     // Check types
     "check:type": "turbo run typecheck",
     // Clean the project (delete node_modules, dist, .turbo, etc.)
-    "clean": "vsh clean",
+    "clean": "node ./scripts/clean.mjs",
     // Commit code
     "commit": "czg",
     // Start the project (by default, the dev scripts of all packages in the entire repository will run)
@@ -95,7 +95,7 @@ The execution command is: `pnpm run [script]` or `npm run [script]`.
     // Lint code
     "lint": "vsh lint",
     // After installing dependencies, execute the stub script for all packages
-    "postinstall": "turbo run stub",
+    "postinstall": "pnpm -r run stub --if-present",
     // Only allow using pnpm
     "preinstall": "npx only-allow pnpm",
     // Install husky

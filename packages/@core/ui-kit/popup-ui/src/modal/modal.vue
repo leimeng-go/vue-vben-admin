@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { ExtendedModalApi, ModalProps } from './modal';
 
-import { computed, nextTick, ref, watch } from 'vue';
+import { computed, nextTick, provide, ref, useId, watch } from 'vue';
 
 import {
   useIsMobile,
@@ -22,6 +22,7 @@ import {
   VbenLoading,
   VisuallyHidden,
 } from '@vben-core/shadcn-ui';
+import { globalShareState } from '@vben-core/shared/global-state';
 import { cn } from '@vben-core/shared/utils';
 
 import { useModalDraggable } from './use-modal-draggable';
@@ -34,11 +35,17 @@ const props = withDefaults(defineProps<Props>(), {
   modalApi: undefined,
 });
 
+const components = globalShareState.getComponents();
+
 const contentRef = ref();
 const wrapperRef = ref<HTMLElement>();
 const dialogRef = ref();
 const headerRef = ref();
 const footerRef = ref();
+
+const id = useId();
+
+provide('DISMISSABLE_MODAL_ID', id);
 
 const { $t } = useSimpleLocale();
 const { isMobile } = useIsMobile();
@@ -141,8 +148,8 @@ function handerOpenAutoFocus(e: Event) {
 // pointer-down-outside
 function pointerDownOutside(e: Event) {
   const target = e.target as HTMLElement;
-  const isDismissableModal = !!target?.dataset.dismissableModal;
-  if (!closeOnClickModal.value || !isDismissableModal) {
+  const isDismissableModal = target?.dataset.dismissableModal;
+  if (!closeOnClickModal.value || isDismissableModal !== id) {
     e.preventDefault();
     e.stopPropagation();
   }
@@ -252,7 +259,8 @@ function handleFocusOutside(e: Event) {
       >
         <slot name="prepend-footer"></slot>
         <slot name="footer">
-          <VbenButton
+          <component
+            :is="components.DefaultButton || VbenButton"
             v-if="showCancelButton"
             variant="ghost"
             @click="() => modalApi?.onCancel()"
@@ -260,8 +268,10 @@ function handleFocusOutside(e: Event) {
             <slot name="cancelText">
               {{ cancelText || $t('cancel') }}
             </slot>
-          </VbenButton>
-          <VbenButton
+          </component>
+
+          <component
+            :is="components.PrimaryButton || VbenButton"
             v-if="showConfirmButton"
             :loading="confirmLoading"
             @click="() => modalApi?.onConfirm()"
@@ -269,7 +279,7 @@ function handleFocusOutside(e: Event) {
             <slot name="confirmText">
               {{ confirmText || $t('confirm') }}
             </slot>
-          </VbenButton>
+          </component>
         </slot>
         <slot name="append-footer"></slot>
       </DialogFooter>
