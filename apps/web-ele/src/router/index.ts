@@ -14,11 +14,13 @@ import { routes } from './routes';
  */
 const router = createRouter({
   history:
+    // 根据环境变量选择使用hash模式或history模式
     import.meta.env.VITE_ROUTER_HISTORY === 'hash'
       ? createWebHashHistory(import.meta.env.VITE_BASE)
       : createWebHistory(import.meta.env.VITE_BASE),
   // 应该添加到路由的初始路由列表。
   routes,
+  // 定义了页面切换时的滚动行为
   scrollBehavior: (to, _from, savedPosition) => {
     if (savedPosition) {
       return savedPosition;
