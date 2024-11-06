@@ -62,11 +62,13 @@ function setupAccessGuard(router: Router) {
 
     // 基本路由，这些路由不需要进入权限拦截
     if (coreRouteNames.includes(to.name as string)) {
+      // 如果跳转的路径是登录页，并且用户已经拥有了accessToken，则无需再次访问登录页，应该直接跳转到首页或重定向页
       if (to.path === LOGIN_PATH && accessStore.accessToken) {
         return decodeURIComponent(
           (to.query?.redirect as string) || DEFAULT_HOME_PATH,
         );
       }
+      // 核心路由不进行拦截，允许访问
       return true;
     }
 
