@@ -89,6 +89,9 @@ const formSchema = computed((): VbenFormSchema[] => {
 });
 </script>
 
+<!-- 
+AuthenticationLogin: 这是一个自定义组件，用于处理用户认证登录的组件
+-->
 <template>
   <AuthenticationLogin
     :form-schema="formSchema"
