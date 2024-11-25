@@ -91,6 +91,9 @@ const formSchema = computed((): VbenFormSchema[] => {
 
 <!-- 
 AuthenticationLogin: 这是一个自定义组件，用于处理用户认证登录的组件
+:form-schema="formSchema": 这是一个属性绑定，将formSchema变量传递给AuthenticationLogin组件。formSchema可能包含了表单的结构和验证规则。
+:loading="authStore.loginLoading": 这个属性绑定用于控制登录过程中的加载状态。它使用了authStore中的loginLoading属性，可能是一个布尔值，用来显示或隐藏加载指示器。
+@submit="authStore.authLogin": 这是一个事件监听器，当表单提交时，它会调用authStore中的authLogin方法来处理登录逻辑。
 -->
 <template>
   <AuthenticationLogin
